@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Princess’s Cozy Holiday ♡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+:root{--card:#fff9f5;--tx:#754b68;--sub:#a17e96;--glass:#fff9f5dd;--bt:#efb8d5;--bd:#f4e2eb;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--card:#3a2a3a;--tx:#f5dcec;--sub:#c9a5bd;--glass:#3a2a3add;--bt:#a5688f;--bd:#5a4260;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#d9c8ed;color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overscroll-behavior:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.top{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.gem{width:100%;max-width:420px;display:flex;align-items:center;gap:10px;background:var(--glass);border-radius:16px;padding:8px 12px;backdrop-filter:blur(6px)}
+.crystal{font-size:22px}
+.gem>div{flex:1}
+.gt{display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;color:var(--sub);font-weight:700}
+.bar{height:7px;background:var(--bd);border-radius:10px;overflow:hidden;margin-top:5px}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#efafd0,#bca3e9);transition:width .5s}
+#hint{background:var(--glass);border-radius:14px;padding:7px 14px;font-size:12px;text-align:center;max-width:90%;backdrop-filter:blur(6px)}
+.bottom{position:fixed;left:0;right:0;bottom:0;padding:0 10px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-direction:column;align-items:center;gap:10px}
+#act{display:none;border:0;border-radius:14px;padding:12px 22px;background:#d9c8f1;color:#5a3450;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #7a4a8a44}
+.bar2{width:100%;max-width:430px;display:flex;gap:6px;align-items:stretch}
+.bar2 button{border:0;border-radius:14px;background:var(--bt);color:#5a3450;font:inherit;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.arr{width:54px;font-size:22px}
+.arr:active{transform:scale(.93)}
+#quests{flex:1;display:flex;gap:6px}
+.qb{flex:1;background:var(--glass)!important;color:var(--tx)!important;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;min-width:0;touch-action:manipulation!important}
+.qb span{font-size:20px;line-height:1.1}
+.qb.done{opacity:.55}
+#overlay{position:fixed;inset:0;z-index:10;background:#6e4b6b99;backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
+.letter{max-width:350px;width:100%;max-height:90%;overflow:auto;background:var(--card);border-radius:24px;padding:24px;text-align:center;animation:ap .4s ease}
+@keyframes ap{from{transform:translateY(20px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+.letter h2{font-family:'Playfair Display',Georgia,serif;font-size:26px;margin:6px 0}
+.letter p{font-size:13px;line-height:1.8;color:var(--sub)}
+.close{border:0;background:#f2c5da;color:#5a3450;padding:13px 20px;border-radius:13px;font-weight:700;cursor:pointer;font:inherit;font-weight:700}
+.float{position:fixed;pointer-events:none;z-index:20;animation:fu 1.3s forwards}
+@keyframes fu{to{transform:translateY(-120px) rotate(30deg);opacity:0}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="top">
+  <div class="gem">
+    <div class="crystal">💎</div>
+    <div>
+      <div class="gt"><span>MAGIC CRYSTALS</span><span><b id="count">0</b> / 100 · <span id="qc">0/4</span> quest</span></div>
+      <div class="bar"><div id="fill"></div></div>
+    </div>
+  </div>
+  <div id="hint">Jalan-jalan di kamar princess ♡</div>
+</div>
+
+<div class="bottom">
+  <button id="act"></button>
+  <div class="bar2">
+    <button class="arr" id="bl">◀</button>
+    <div id="quests"></div>
+    <button class="arr" id="br">▶</button>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="letter">
+    <div style="font-size:45px">💌</div>
+    <div style="font-size:10px;letter-spacing:2px;color:var(--sub)">A LITTLE SECRET</div>
+    <h2>For my favorite girl</h2>
+    <p>Yeayyy, gem kamu udah penuh! ♡<br><br>
+    Selamat liburan yaa sayang. Kamu udah berusaha banyak selama sekolah, sekarang waktunya istirahat dan nikmatin hari-hari kamu.<br><br>
+    Jangan lupa mandi, makan, minum, dan tidur yang cukup yaa. Aku selalu dukung kamu. You deserve a lovely little holiday. 🌷</p>
+    <button class="close" id="closeL">Open my heart ♡</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cv=$("game"),ctx=cv.getContext("2d");
+const P=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+let sc=1,dpr=1,ox=0,oy=0,W=320,H=220;
+function resize(){
+  dpr=Math.min(devicePixelRatio||1,2);
+  const vw=innerWidth,vh=innerHeight;
+  cv.width=vw*dpr;cv.height=vh*dpr;
+  sc=Math.min(vw/320,vh/220);
+  W=vw/sc;H=vh/sc;ox=(W-320)/2;oy=(H-220)/2;
+}
+addEventListener("resize",resize);resize();
+
+const S={
+  bath:{x:262,gem:30,dur:260,ico:"🛁",btn:"Mandi",act:"🛁 Mandi sekarang",doing:"Princess lagi mandi... ♡",msg:"Bunny: mandi dulu biar seger yaa 🛁"},
+  water:{x:92,gem:20,dur:130,ico:"🥛",btn:"Minum",act:"🥛 Minum air",doing:"Glug glug... segerr 💧",msg:"Bunny: makasih udah minum air yaa 💧"},
+  rest:{x:190,gem:30,dur:260,ico:"🧸",btn:"Istirahat",act:"🧸 Tidur sebentar",doing:"Zzz... princess lagi istirahat 🌙",msg:"Bunny: sekarang waktunya istirahat 🧸"},
+  hug:{x:52,gem:20,dur:150,ico:"🌷",btn:"Peluk",act:"🌷 Peluk bunny",doing:"Peluk bunny erat-erat ♡",msg:"Bunny: kamu udah hebat hari ini 🌷"}
+};
+const keys=Object.keys(S);
+let x=130,dir=1,goal=null,act=null,done={},gems=0,f=0,manual=0,walking=false;
+
+$("quests").innerHTML=keys.map(k=>`<button class="qb" id="q_${k}" data-k="${k}"><span>${S[k].ico}</span>${S[k].btn}</button>`).join("");
+document.querySelectorAll(".qb").forEach(b=>b.onclick=()=>{
+  const k=b.dataset.k;if(done[k]||act)return;
+  goal=k;$("hint").textContent="Princess jalan ke sana... ♡";
+});
+
+function start(k){
+  if(done[k]||act)return;
+  act={k,t:0};goal=null;manual=0;x=S[k].x;dir=k==="hug"?-1:1;
+  $("hint").textContent=S[k].doing;$("act").style.display="none";
+}
+function finish(){
+  const k=act.k;done[k]=true;act=null;
+  const q=$("q_"+k);q.classList.add("done");q.firstChild.textContent="✓";
+  gems=Math.min(100,gems+S[k].gem);
+  $("count").textContent=gems;$("fill").style.width=gems+"%";
+  $("qc").textContent=Object.keys(done).length+"/4";
+  $("hint").textContent=S[k].msg;sparkle();
+  if(gems>=100)setTimeout(()=>$("overlay").style.display="flex",1000);
+}
+function update(){
+  f++;
+  if(act){act.t++;if(act.t>=S[act.k].dur)finish();walking=false;return}
+  let mv=0;
+  if(manual){mv=manual;goal=null}
+  else if(goal){const d=S[goal].x-x;if(Math.abs(d)<=2)start(goal);else mv=Math.sign(d)}
+  walking=!!mv;
+  if(mv){x=Math.max(8,Math.min(280,x+mv*1.7));dir=mv}
+  const near=keys.find(k=>!done[k]&&Math.abs(S[k].x-x)<14),a=$("act");
+  if(near&&!act&&!goal){a.style.display="block";a.textContent=S[near].act;a.dataset.k=near}else a.style.display="none";
+}
+$("act").onclick=()=>start($("act").dataset.k);
+
+// ---------- gambar ----------
+function room(){
+  P(-ox-10,-oy-10,245+ox,165+oy,"#d9c8ed");P(235,-oy-10,85+ox+10,165+oy,"#f3e4ef");
+  P(-ox-10,155,340+2*ox,H,"#ecd9ee");P(-ox-10,155,340+2*ox,3,"#d9bfd9");
+  for(let i=0;i<22;i++)P((i*43)%320,(i*31)%140,3,3,"#fff5fc");
+  P(25,20,78,90,"#fff0f7");P(31,26,66,78,"#999bd0");P(63,26,4,78,"#fff0f7");P(31,63,66,4,"#fff0f7");
+  P(72,37,12,12,"#fff0b8");P(78,33,12,12,"#999bd0");
+  // meja + gelas
+  P(108,138,32,4,"#b984a9");P(112,142,4,19,"#b984a9");P(132,142,4,19,"#b984a9");
+  P(118,126,10,12,"#e8f6fb");
+  const lvl=done.water||(act&&act.k==="water")?0:10;
+  if(lvl)P(119,138-lvl,8,lvl,"#9fd8ea");
+  // kasur
+  P(155,115,75,70,"#b984a9");P(150,130,85,55,"#fff0f7");P(160,125,35,25,"#d8c7f1");P(150,155,85,30,"#d5a8c5");
+  // pintu kamar mandi
+  P(238,62,38,93,"#fff6fa");P(243,67,28,88,"#d7b4d1");P(264,110,4,4,"#fff0b8");
+  for(let i=0;i<5;i++)P(280,75+i*15,30,2,"#f1d3e7");
+  // bathtub
+  P(265,120,48,32,"#fffafa");P(270,125,38,22,"#bde5ef");P(265,120,48,5,"#fff");
+  P(292,40,5,25,"#c5b5d9");P(280,40,17,5,"#c5b5d9");P(280,45,17,5,"#bde5ef");
+  P(275,110,5,5,"#fff");P(287,105,4,4,"#fff");P(300,112,5,5,"#fff");
+  P(45,185,210,18,"#f5d4e7");
+  ctx.fillStyle="#fff8ff";ctx.font="8px sans-serif";ctx.fillText("BEDROOM",12,13);ctx.fillText("BATHROOM",245,13);
+}
+function bunny(bx,by,hop){
+  by-=hop;
+  P(bx,by,5,14,"#fffafa");P(bx+9,by,5,14,"#fffafa");P(bx-2,by+12,18,15,"#fffafa");
+  P(bx+2,by+17,2,2,"#d88aaa");P(bx+10,by+17,2,2,"#d88aaa");P(bx+6,by+21,2,2,"#f5a3c0");
+}
+function princess(px,bob,arm){
+  ctx.save();ctx.translate(px+10,0);ctx.scale(dir,1);ctx.translate(-10,0);
+  P(0,116+bob,20,25,"#80516e");P(2,110+bob,16,12,"#80516e");P(4,116+bob,12,12,"#ffe0c8");P(2,112+bob,16,6,"#80516e");
+  P(5,120+bob,2,2,"#493447");P(13,120+bob,2,2,"#493447");
+  P(2,128+bob,16,17,"#ef9fc8");P(-2,141+bob,24,8,"#f8c5df");
+  P(-3,130+bob,5,10,"#ffe0c8");
+  if(arm==="up"){P(18,120+bob,5,12,"#ffe0c8");P(17,115+bob,7,7,"#e8f6fb");P(18,118+bob,5,4,"#9fd8ea")}
+  else if(arm==="hug"){P(16,130+bob,12,5,"#ffe0c8")}
+  else P(18,130+bob,5,10,"#ffe0c8");
+  if(walking&&f%16<8){P(4,149+bob,5,9,"#ffe0c8");P(13,147+bob,5,11,"#ffe0c8")}
+  else{P(5,149+bob,5,9,"#ffe0c8");P(12,149+bob,5,9,"#ffe0c8")}
+  P(2,157+bob,8,4,"#9b6b92");P(12,157+bob,8,4,"#9b6b92");
+  P(5,106+bob,10,4,"#ffe58a");P(5,103+bob,3,4,"#ffe58a");P(9,101+bob,3,6,"#ffe58a");P(13,103+bob,3,4,"#ffe58a");
+  ctx.restore();
+}
+function floaty(txt,fx,fy,t){
+  ctx.font="12px sans-serif";ctx.globalAlpha=Math.max(0,1-(t%50)/50);
+  ctx.fillText(txt,fx,fy-(t%50)*0.6);ctx.globalAlpha=1;
+}
+function draw(){
+  update();
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.setTransform(sc*dpr,0,0,sc*dpr,ox*sc*dpr,oy*sc*dpr);room();
+  const k=act&&act.k,t=act?act.t:0;
+  const hop=(!k&&done.hug)||k==="hug"?(k==="hug"&&t%30<8?3:0):0;
+  if(k==="bath"){
+    P(265,125,48,30,"#bde5ef");
+    P(275,130,20,12,"#ffe0c8");P(278,128,16,5,"#80516e");P(280,135,3,3,"#493447");P(290,135,3,3,"#493447");
+    for(let i=0;i<4;i++){const o=(t+i*20)%50;P(270+i*9,122-o*0.3,5,5,"#fff")}
+  }else if(k==="rest"){
+    P(158,118,60,10,"#80516e");P(160,120,14,12,"#ffe0c8");P(163,124,2,2,"#493447"); // kepala
+    P(172,122,40,14,"#ef9fc8");P(172,122,40,5,"#f8c5df"); // selimut
+    P(206,122,22,14,"#d5a8c5");
+    P(160,111,10,4,"#ffe58a");
+    ctx.fillStyle="#fff";floaty("z",176,115,t);floaty("Z",190,112,t+25);
+  }else{
+    bunny(22,128,hop);
+    const arm=k==="water"?"up":k==="hug"?"hug":"";
+    const bob=k==="hug"&&t%30<8?-2:(walking&&f%16<8?2:0);
+    princess(x,bob,arm);
+    if(k==="hug"){ctx.fillStyle="#ef7fb0";floaty("♡",x-6,110,t);floaty("♡",x+10,105,t+25)}
+  }
+  if(k==="rest"||k==="bath"){bunny(22,128,0)}
+  // petunjuk di atas stasiun yang belum selesai
+  ctx.font="11px sans-serif";
+  keys.forEach(q=>{if(!done[q]&&!act){ctx.fillStyle="#fff";ctx.globalAlpha=.7+.3*Math.sin(f/15);ctx.fillText(S[q].ico,S[q].x+3,98);ctx.globalAlpha=1}});
+  requestAnimationFrame(draw);
+}
+
+function sparkle(){
+  for(let i=0;i<12;i++){
+    const el=document.createElement("div");el.className="float";
+    el.textContent=["✧","♡","✨","💎"][Math.floor(Math.random()*4)];
+    el.style.left=Math.random()*100+"vw";el.style.top=(50+Math.random()*35)+"vh";
+    el.style.fontSize=(14+Math.random()*18)+"px";
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1300);
+  }
+}
+
+
+function sparkle(){
+  for(let i=0;i<12;i++){
+    const el=document.createElement("div");el.className="float";
+    el.textContent=["✧","♡","✨","💎"][Math.floor(Math.random()*4)];
+    el.style.left=Math.random()*100+"vw";el.style.top=(40+Math.random()*40)+"vh";
+    el.style.fontSize=(14+Math.random()*18)+"px";
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1300);
+  }
+}
+function hold(id,d){
+  const b=$(id);
+  b.addEventListener("pointerdown",e=>{e.preventDefault();if(!act){manual=d;goal=null}});
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,()=>{if(manual===d)manual=0}));
+}
+hold("bl",-1);hold("br",1);
+addEventListener("keydown",e=>{
+  if(act)return;const k=e.key.toLowerCase();
+  if(k==="arrowleft"||k==="a")manual=-1;
+  if(k==="arrowright"||k==="d")manual=1;
+  if((k==="enter"||k===" ")&&$("act").style.display!=="none"){e.preventDefault();start($("act").dataset.k)}
+});
+addEventListener("keyup",e=>{if(["arrowleft","a","arrowright","d"].includes(e.key.toLowerCase()))manual=0});
+cv.addEventListener("pointerdown",e=>{
+  if(act)return;
+  const tx=e.clientX/sc-ox-10;
+  const k=keys.find(q=>!done[q]&&Math.abs(S[q].x-tx)<22);
+  if(k)goal=k;
+});
+$("closeL").onclick=()=>$("overlay").style.display="none";
+draw();
+</script>
+</body>
+</html>
